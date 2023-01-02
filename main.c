@@ -9,6 +9,7 @@ void processLine();
 void define();
 void clear_def_and_nam_tab();
 void expand();
+int searchnamtab();
 
 int main()
 {
@@ -39,6 +40,7 @@ void getLine(){
 
 void processLine()
 {
+
     if(strcmp(opcode,"MACRO")==0)
     {
         define();
@@ -50,11 +52,12 @@ void processLine()
 
 void define()
 {
-
+    int start,end;
     namptr = fopen("namtab.txt","a");
     defptr = fopen("deftab.txt","a");
     fprintf(namptr,"%s",label);
     fprintf(defptr,"%s\t%s\t%s\n",label,opcode,operand);
+    start = ftell(defptr);
     int level = 1;
     while(level>0){
             getLine();
@@ -67,9 +70,10 @@ void define()
                     level--;
              }
     }
+    end = ftell(defptr);
+    fprintf(namptr,"\t%d\t%d\n",start,end);
     fclose(namptr);
     fclose(defptr);
-    //todo store pointers
 
 }
 
@@ -84,4 +88,24 @@ void clear_def_and_nam_tab()
     defptr = fopen("deftab.txt","w");
     fclose(namptr);
     fclose(defptr);
+}
+
+int searchnamtab()
+{
+    int found = 0;
+    char macro_name[100];
+    namptr = fopen("namtab.txt","r");
+    while(!feof(namptr))
+    {
+        fscanf(namptr,"%s",macro_name);
+        if(strcmp(opcode,macro_name)==0)
+        {
+            found = 1;
+        }
+        else{
+            fscanf(namptr,"%s",macro_name);
+            fscanf(namptr,"%s",macro_name);
+        }
+    }
+    return found;
 }
