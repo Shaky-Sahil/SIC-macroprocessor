@@ -9,6 +9,7 @@ void processLine();
 void define();
 void clear_def_and_nam_tab();
 void expand();
+char macro_start_pointer[100];
 int searchnamtab();
 
 int main()
@@ -30,18 +31,21 @@ int main()
 void getLine(){
     if(expanding == 1)
     {
-        printf("reading from deftab");
+
+       fscanf(defptr,"%s%s%s",label,opcode,operand);
     }
     else{
         fscanf(iptr,"%s%s%s",label,opcode,operand);
-        //printf("the label is %s the opcode is %s the operand is %s\n",label,opcode,operand);
     }
 }
 
 void processLine()
 {
-
-    if(strcmp(opcode,"MACRO")==0)
+    if(searchnamtab()==1)
+    {
+        expand();
+    }
+    else if(strcmp(opcode,"MACRO")==0)
     {
         define();
     }
@@ -80,6 +84,17 @@ void define()
 void expand()
 {
     expanding = 1;
+    defptr = fopen("deftab.txt","r");
+    fseek(defptr,atoi(macro_start_pointer),SEEK_SET);
+    //todo add comment
+    getLine();
+    while(strcmp(opcode,"MEND")!=0)
+    {
+        processLine();
+        getLine();
+    }
+    fclose(defptr);
+    expanding = 0;
 }
 
 void clear_def_and_nam_tab()
@@ -100,7 +115,9 @@ int searchnamtab()
         fscanf(namptr,"%s",macro_name);
         if(strcmp(opcode,macro_name)==0)
         {
+            fscanf(namptr,"%s",macro_start_pointer);
             found = 1;
+            return found;
         }
         else{
             fscanf(namptr,"%s",macro_name);
