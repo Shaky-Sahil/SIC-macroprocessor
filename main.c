@@ -11,6 +11,16 @@ void clear_def_and_nam_tab();
 void expand();
 char macro_start_pointer[100];
 int searchnamtab();
+void create_positional_map();
+void convert_to_positional_notation();
+
+typedef struct positional_mapping //stores each macro parameter and it's positional mappping
+{
+    char parameter_name[100];//eg: &indev
+    char positional_notation[2];//eg: ?1
+}positional_mapping;
+
+positional_mapping parameter_map[10];
 
 int main()
 {
@@ -22,7 +32,6 @@ int main()
     {
         getLine();
         processLine();
-
     }
     fclose(exptr);
 
@@ -61,6 +70,7 @@ void define()
     defptr = fopen("deftab.txt","a");
     fprintf(namptr,"%s",label);
     fprintf(defptr,"%s\t%s\t%s\n",label,opcode,operand);
+    create_positional_map();
     start = ftell(defptr);
     int level = 1;
     while(level>0){
@@ -125,4 +135,29 @@ int searchnamtab()
         }
     }
     return found;
+}
+
+void create_positional_map()
+{
+   int i=0,j=0,k=0;
+   while(operand[i]!='\0')
+   {
+       if(operand[i]==',')
+       {
+           parameter_map[j].positional_notation[0]='1';
+           j++;
+           k=0;
+       }
+       else{
+        parameter_map[j].parameter_name[k] = operand[i];
+        k++;
+       }
+       i++;
+   }
+    printf("%s",parameter_map[0].parameter_name);
+}
+
+void convert_to_positional_notation()
+{
+   //todo;
 }
