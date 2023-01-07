@@ -17,7 +17,7 @@ void convert_to_positional_notation();
 typedef struct positional_mapping //stores each macro parameter and it's positional mappping
 {
     char parameter_name[100];//eg: &indev
-    char positional_notation[2];//eg: ?1
+    char positional_notation[3];//eg: ?1
 }positional_mapping;
 
 positional_mapping parameter_map[10];
@@ -76,7 +76,8 @@ void define()
     while(level>0){
             getLine();
             //todo sub positional notation
-            fprintf(defptr,"%s\t%s\t%s\n",label,opcode,operand);
+            fprintf(defptr,"%s\t%s\t",label,opcode);
+            convert_to_positional_notation();
              if(strcmp(opcode,"MACRO")==0){
                 level++;
              }
@@ -144,7 +145,8 @@ void create_positional_map()
    {
        if(operand[i]==',')
        {
-           parameter_map[j].positional_notation[0]='1';
+           parameter_map[j].positional_notation[0]='?';
+           parameter_map[j].positional_notation[1]=(char)j+49; // ascii of 1-9 is 49-57
            j++;
            k=0;
        }
@@ -154,10 +156,30 @@ void create_positional_map()
        }
        i++;
    }
+    parameter_map[j].positional_notation[0]='?';
+    parameter_map[j].positional_notation[1]=(char)j+49;
     printf("%s",parameter_map[0].parameter_name);
 }
 
 void convert_to_positional_notation()
 {
-   //todo;
+    int i=0;
+    int found = 0;
+    while(i<(sizeof(parameter_map)/sizeof(positional_mapping)))
+    {
+
+    if(strcmp(operand,parameter_map[i].parameter_name)==0)
+    {
+        found = 1;
+        fprintf(defptr,"%s\n",parameter_map[i].positional_notation);
+        break;
+    }
+    else{
+        i++;
+    }
+    }
+    if(found == 0)
+    {
+        fprintf(defptr,"%s\n",operand);
+    }
 }
