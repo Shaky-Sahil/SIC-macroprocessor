@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 int expanding;
-FILE *iptr,*exptr,*namptr,*defptr;
+FILE *iptr,*exptr,*namptr,*defptr,*argptr;
 char label[100],opcode[100],operand[100];
 void getLine();
 void processLine();
@@ -13,11 +13,14 @@ char macro_start_pointer[100];
 int searchnamtab();
 void create_positional_map();
 void convert_to_positional_notation();
+void setup_argtab();
+void substitute_positional_notation();
 
 typedef struct positional_mapping //stores each macro parameter and it's positional mappping
 {
     char parameter_name[100];//eg: &indev
     char positional_notation[3];//eg: ?1
+    char sub_value[100];//value to be substituted
 }positional_mapping;
 
 positional_mapping parameter_map[10];
@@ -42,6 +45,10 @@ void getLine(){
     {
 
        fscanf(defptr,"%s%s%s",label,opcode,operand);
+       if(operand[0]=='?')
+       {
+           substitute_positional_notation();
+       }
     }
     else{
         fscanf(iptr,"%s%s%s",label,opcode,operand);
@@ -97,6 +104,7 @@ void expand()
     expanding = 1;
     defptr = fopen("deftab.txt","r");
     fseek(defptr,atoi(macro_start_pointer),SEEK_SET);
+    setup_argtab();
     //todo add comment
     getLine();
     while(strcmp(opcode,"MEND")!=0)
@@ -181,5 +189,46 @@ void convert_to_positional_notation()
     if(found == 0)
     {
         fprintf(defptr,"%s\n",operand);
+    }
+}
+
+void setup_argtab()
+{
+    argptr = fopen("argtab.txt","w");
+    int i=0,j=0,k=0;
+    while(operand[i]!='\0'){
+        if(operand[i]==',')
+        {
+            parameter_map[j].sub_value[k]='\0';
+            printf("the sub value is:%s",parameter_map[j].sub_value);
+            j++;
+            k=0;
+            fprintf(argptr,"\n");
+        }
+        else{
+            fprintf(argptr,"%c",operand[i]);
+            parameter_map[j].sub_value[k]=operand[i];
+            k++;
+        }
+        i++;
+    }
+     parameter_map[j].sub_value[k]='\0';
+    fclose(argptr);
+}
+
+void substitute_positional_notation()
+{
+    int i=0;
+    while(i<(sizeof(parameter_map)/sizeof(positional_mapping)))
+    {
+        if(strcmp(operand,parameter_map[i].positional_notation)==0)
+        {
+           strcpy(operand,parameter_map[i].sub_value);
+            break;
+        }
+        else{
+            i++;
+        }
+
     }
 }
